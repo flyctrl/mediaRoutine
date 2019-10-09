@@ -1,43 +1,29 @@
 import {
-  HTTP
-} from '../utils/http.js'
+    HTTP
+} from '../util/http.js'
+
 class LikeModel extends HTTP {
-  constructor() {
-    super()
-  }
-
-  getClassicLikeStatus(cid, type, success) {
-    var params = {
-      url: 'classic/' + type + '/' + cid + '/favor',
-      success: success
+    like(behavior, artID, category){
+        let url = behavior == 'like' ? 'like' : 'like/cancel'
+        this.request({
+            url: url,
+            method: 'POST',
+            data: {
+                art_id: artID,
+                type: category
+            }
+        })
     }
-    this.request(params)
-  }
 
-  getBookLikeStatus(bid, type, success) {
-    var params = {
-      url: 'book/' + type + '/' + bid + '/favor',
-      success: success
+    getClassicLikeStatus(artID,category,sCallback){
+        this.request({
+            url:'classic/' + category + '/' + artID + '/favor',
+            success:sCallback
+        })
     }
-    this.request(params)
-  }
 
-  like(like_or_cancel, art_id, type) {
-    let url = like_or_cancel === 'cancel' ? 'like/cancel' : 'like'
-    this.request({
-      url: url,
-      method: 'POST',
-      data: {
-        art_id: art_id,
-        type: type
-      },
-      success: (data) => {
-        console.log(data)
-      }
-    })
-  }
 }
 
 export {
-  LikeModel
+    LikeModel
 }

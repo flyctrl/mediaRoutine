@@ -15,7 +15,7 @@ Component({
           }[newVal.type]
         }
         this.setData({
-          typeText: typeText
+          typeText
         })
       }
     }
@@ -25,7 +25,7 @@ Component({
    * 组件的初始数据
    */
   data: {
-    typeText:String
+    typeText:''
   },
 
   /**
@@ -33,8 +33,7 @@ Component({
    */
   methods: {
     onTap:function(event){
-      // 注意catchtap与bindtap的区别
-      this.triggerEvent('tap',{
+      this.triggerEvent('tapping',{
         cid:this.properties.classic.id,
         type:this.properties.classic.type
       },{})

@@ -1,83 +1,95 @@
-// pages/classic/classic.js
-import {ClassicModel} from '../../models/classic.js'
-import { LikeModel } from '../../models/like.js'
-let classicModel = new ClassicModel()
-let likeModel = new LikeModel()
+import {
+  ClassicModel
+} from '../../models/classic.js'
+import {
+  LikeModel
+} from '../../models/like.js'
 
-Page({
+const classicModel = new ClassicModel()
+const likeModel = new LikeModel()
+
+Component({
 
   /**
    * 页面的初始数据
    */
+
+  properties: {
+    cid: Number,
+    type: Number
+  },
+
   data: {
-    classic:null,
-    latest:true,
-    first:false,
-    like:false,
-    count:0
+    classic: null,
+    latest: true,
+    first: false,
+    likeCount: 0,
+    likeStatus: false
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
-  onLoad: function (options) {
-    classicModel.getLatest((data)=>{
-      this._getLikeStatus(data.id, data.type)
-      this.setData({
-        classic:data
-      })
-    })
-  },
 
-  onPrevious:function(event){
-    let index = this.data.classic.index
-    classicModel.getPrevious(index, (data)=>{
-      if(data){
-        this._getLikeStatus(data.id, data.type)
+  attached(options) {
+    const cid = this.properties.cid
+    const type = this.properties.type
+    if (!cid) {
+      classicModel.getLatest((res) => {
         this.setData({
-          classic:data,
-          latest: classicModel.isLatest(data.index),
-          first: classicModel.isFirst(data.index)
+          classic: res,
+          likeCount: res.fav_nums,
+          likeStatus: res.like_status
         })
-      }
-      else{
-        console.log('not more classic')
-      }
-    })
-  },
-
-  onNext:function(event){
-    let index = this.data.classic.index
-    classicModel.getNext(index, (data)=>{
-      if (data) {
-        this._getLikeStatus(data.id, data.type)
-        this.setData({
-          classic: data,
-          latest: classicModel.isLatest(data.index),
-          first: classicModel.isFirst(data.index)
-        })
-      }
-      else {
-        console.log('not more classic')
-      }
-    })
-  },
-
-  onLike:function(event){
-    let like_or_cancel = event.detail.behavior
-    likeModel.like(like_or_cancel, this.data.classic.id, this.data.classic.type)
-  },
-
-  _getLikeStatus:function(cid, type){
-    likeModel.getClassicLikeStatus(cid, type, (data)=>{
-      this.setData({
-        like:data.like_status,
-        count:data.fav_nums
       })
-    })
+    }
+    else{
+      classicModel.getById(cid, type,res=>{
+        this._getLikeStatus(res.id, res.type)
+        this.setData({
+          classic: res,
+          latest: classicModel.isLatest(res.index),
+          first: classicModel.isFirst(res.index)
+        }) 
+      })
+    }
   },
 
-  onShareAppMessage(){
+  methods: {
+    onLike: function (event) {
+      const behavior = event.detail.behavior
+      likeModel.like(behavior, this.data.classic.id,
+        this.data.classic.type)
+    },
 
+    onNext: function (event) {
+      this._updateClassic('next')
+    },
+
+    onPrevious: function (event) {
+      this._updateClassic('previous')
+    },
+
+    _updateClassic: function (nextOrPrevious) {
+      const index = this.data.classic.index
+      classicModel.getClassic(index, nextOrPrevious, (res) => {
+        this._getLikeStatus(res.id, res.type)
+        this.setData({
+          classic: res,
+          latest: classicModel.isLatest(res.index),
+          first: classicModel.isFirst(res.index)
+        })
+      })
+    },
+
+    _getLikeStatus: function (artID, category) {
+      likeModel.getClassicLikeStatus(artID, category,
+        (res) => {
+          this.setData({
+            likeCount: res.fav_nums,
+            likeStatus: res.like_status
+          })
+        })
+    },
   }
 })

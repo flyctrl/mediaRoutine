@@ -1,48 +1,55 @@
-// pages/book/book.js
-import {BookModel} from '../../models/book.js'
-import {random} from '../../utils/util.js'
-let bookModel = new BookModel()
+import {
+  BookModel
+} from '../../models/book.js'
+
+import {
+  random
+} from '../../util/common.js'
+
+const bookModel = new BookModel()
+
 Page({
 
   /**
    * 页面的初始数据
    */
   data: {
-    searchPanel:false,
-    books:Object,
-    more:false
-  },
-
-  onReachBottom: function (event) {
-    this.setData({
-      more:random(16)
-    })
+    books: [],
+    searching:false,
+    more:''
   },
 
   /**
-   * 生命周期函数--监听页面加载
+   * 生命周期函数--监听页面加
    */
-  onLoad: function (options) {
-    bookModel.getHotList((data)=>{
-      this.setData({
-        books:data
+  onLoad: function (optins) {
+    bookModel.getHotList()
+      .then(res => {
+        this.setData({
+          books:res
+        })
       })
-    })
+    // id
   },
 
-  onActivateSearch:function(event){
+  onSearching(event){
     this.setData({
-      searchPanel:true
+      searching:true
     })
   },
 
-  onCancel:function(event){
+  onCancel(event){
     this.setData({
-      searchPanel:false
-    })
+      searching:false
+    }) 
   },
 
-  onShareAppMessage() {
-
+  onReachBottom(){
+    this.setData({
+      more:random(16)
+    })
   }
+
+  
+
 })

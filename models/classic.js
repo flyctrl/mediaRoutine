@@ -1,105 +1,84 @@
-import { HTTP } from '../utils/http.js'
-import {ClassicStorage} from '../models/classic-storage.js'
+import {
+    HTTP
+}
+from '../util/http.js'
 
-class ClassicModel extends HTTP{
-  prefix = 'classic'
+class ClassicModel extends HTTP {
+    getLatest(sCallback) {
+        this.request({
+            url: 'classic/latest',
+            success: (res) => {
+                sCallback(res)
+                this._setLatestIndex(res.index)
+                let key = this._getKey(res.index)
+                wx.setStorageSync(key, res)
+            }
+        })
+    }
 
-  constructor() {
-    super()
-  }
-
-  getLatest(sCallback){
-    this.request({
-      url:'classic/latest',
-      success:(data)=>{
-          // 如果不用箭头函数，this将指代不正确
-          let key = this._fullKey(data.index)
-          wx.setStorageSync(key, data)
-          this._setLatestIndex(data.index)
-          sCallback(data)
+    getClassic(index, nextOrPrevious, sCallback) {
+        // 缓存中寻找 or API 写入到缓存中
+        // key 确定key
+        let key = nextOrPrevious == 'next' ?
+            this._getKey(index + 1) : this._getKey(index - 1)
+        let classic = wx.getStorageSync(key)
+        if (!classic) {
+            this.request({
+                url: `classic/${index}/${nextOrPrevious}`,
+                success: (res) => {
+                    wx.setStorageSync(
+                        this._getKey(res.index), res)
+                    sCallback(res)
+                }
+            })
+        } else {
+            sCallback(classic)
         }
-    })
-  }
-
-  getPrevious(index, sCallback){
-    this._getClassic(index,'previous',sCallback)
-  }
-
-  getNext(index, sCallback) {
-    this._getClassic(index, 'next', sCallback)
-  }
-
-  getById(cid, type, success){
-    let params = {
-      url:'classic/'+type+'/' + cid,
-      success:success
     }
-    this.request(params)
-  }
 
-  isLatest(index){
-    let key = this._fullKey('latest-' + index)
-    let latestEpsoide = wx.getStorageSync(key)
-    if(latestEpsoide){
-      if (index == latestEpsoide){
-        return true
-      }
+
+    isFirst(index) {
+        return index == 1 ? true : false
     }
-    else return false
-  }
 
-  isFirst(index){
-    if (index==1){
-      return true
+    isLatest(index) {
+        let latestIndex = this._getLatestIndex()
+        return latestIndex == index ? true : false
     }
-    else return false
-  }
 
-  getMyFavor(success){
-    let params={
-      url:'classic/favor',
-      success:success
-    }
-    this.request(params)
-  }
 
-  _getClassic(index, next_or_previous, sCallback){
-    let key = next_or_previous == 'next' ? this._fullKey(index + 1):
-      this._fullKey(index-1)
-    let classic = wx.getStorageSync(key)
-    if (!classic) {
-      let params = {
-        url: 'classic/' + index + '/' + next_or_previous,
-        success:(data)=>{
-          let key = this._fullKey(data.index)
-          wx.setStorageSync(key, data)
-          sCallback(data)
+    getMyFavor(success) {
+        const params = {
+            url: 'classic/favor',
+            success: success
         }
-      }
-      this.request(params)
+        this.request(params)
     }
-    else{
-      sCallback(classic)
+
+    getById(cid, type, success) {
+        let params = {
+            url: `classic/${type}/${cid}`,
+            success: success
+        }
+        this.request(params)
     }
-  }
 
-  /**
-   * 在缓存中存放最新一期的期数
-   */
-  _setLatestIndex(index){
-    let key = this._fullKey('latest-' + index)
-    wx.setStorageSync(key, index)
-  }
+    _setLatestIndex(index) {
+        wx.setStorageSync('latest', index)
+    }
 
-  _getLatestEpsoide(index){
-    let key = this._fullKey(index)
-    return wx.getStorageSync(key)
-  }
+    _getLatestIndex() {
+        const index = wx.getStorageSync('latest')
+        return index
+    }
 
-  _fullKey(partKey){
-    let key = this.prefix + '-' + partKey
-    return key
-  }
+    _getKey(index) {
+        const key = 'classic-' + index
+        return key
+    }
 }
 
-export {ClassicModel}
+
+export {
+    ClassicModel
+}

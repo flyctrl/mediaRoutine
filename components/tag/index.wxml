@@ -1,4 +1,7 @@
-<view bind:tap="onTap" class='container tag-class'>
-  <text>{{text}}</text>
-  <slot class="after" name="after"></slot>
+<view bind:tap="onTap" class="container tag-class ">
+    <slot name="before"></slot>
+    <text >{{text}}</text>
+    <slot name="after"></slot>
 </view>
+
+<!-- 普通样式 外部样式 -->

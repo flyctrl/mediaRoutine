@@ -1,57 +1,68 @@
-import {
-  HTTP
-} from '../../utils/http.js'
-
-let paginationBev = Behavior({
-  properties: {
-   
-  },
-  data: {
-    start: 0,
-    count: 20,
-    dataArray: [],
-    empty:false,
-    ending:false
-  },
-
-  methods: {
-    setMoreData: function(dataArray) {
-      if (dataArray==false) {
-        this.data.ending = true
-        if(this.data.dataArray==false){
-          this.setData({
-            empty:true
-          })
-        }
-      }
-      let temp =this.data.dataArray.concat(dataArray)
-      this.data.start += this.data.count
-      this.setData({
-        dataArray: temp
-      })
-      return true
+const paginationBev = Behavior({
+    data: {
+        dataArray: [],
+        total: null,
+        noneResult: false,
+        loading:false
     },
 
-    hasMore:function(){
-      return !this.data.ending
-    },
+    methods: {
+        setMoreData(dataArray) {
+            const tempArray =
+                this.data.dataArray.concat(dataArray)
+            this.setData({
+                dataArray: tempArray
+            })
+        },
 
-    getCurrentStart:function(){
-      return this.data.start
-    },
+        getCurrentStart() {
+            return this.data.dataArray.length
+        },
 
-    initPagination:function(){
-      this.data.ending = false
-      this.data.start = 0
-      this.data.dataArray = []
-      this.setData({
-        dataArray:[]
-      })
+        setTotal(total) {
+            this.data.total = total
+            if (total == 0) {
+                this.setData({
+                    noneResult: true
+                })
+            }
+        },
+
+        hasMore() {
+            if (this.data.dataArray.length >= this.data.total) {
+                return false
+            } else {
+                return true
+            }
+        },
+        initialize() {
+            this.setData({
+                dataArray: [],
+                noneResult: false,
+                loading:false
+            })
+            this.data.total = null
+        },
+
+        isLocked() {
+            return this.data.loading ? true : false
+        },
+
+        locked() {
+            this.setData({
+                loading: true
+            })
+        },
+
+        unLocked() {
+            this.setData({
+                loading: false
+            })
+        },
+
     }
-  }
 })
 
-
 export {
-  paginationBev
+    paginationBev
 }
